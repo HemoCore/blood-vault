@@ -1,8 +1,6 @@
-import { test } from "node:test";
-// @ts-ignore
+﻿import { test } from "node:test";
 import assert from "node:assert/strict";
-// @ts-ignore
-import { canDonate } from "./eligibility.ts";
+import { canDonate } from "./eligibility";
 
 test("30 ans, 65 kg : peut donner", () => {
     assert.equal(canDonate({ age: 30, weightKg: 65 }), true);
