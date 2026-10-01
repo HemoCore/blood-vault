@@ -3,4 +3,5 @@ export interface Candidate {
     weightKg: number;
     sexe: string;
     annualDonations: number;
+    lastDonationAt: Date|null;
 }
