@@ -1,36 +1,53 @@
 ﻿import { test } from "node:test";
 import assert from "node:assert/strict";
-import { canDonate } from "./eligibility";
+import {
+    canDonate,
+    isAgeEligible,
+    isWeightEligible,
+    isWithinAnnualDonationLimit,
+} from "./eligibility";
 
-test("30 ans, 65 kg : peut donner", () => {
-    assert.equal(canDonate({ age: 30, weightKg: 65 }), true);
+test("isAgeEligible accepts the age boundaries", () => {
+    assert.equal(isAgeEligible({ age: 18, weightKg: 65, sexe: "male", annualDonations: 0 }), true);
+    assert.equal(isAgeEligible({ age: 70, weightKg: 65, sexe: "male", annualDonations: 0 }), true);
 });
 
-test("17 ans : ne peut pas donner", () => {
-    assert.equal(canDonate({ age: 17, weightKg: 65 }), false);
+test("isAgeEligible rejects ages outside the boundaries", () => {
+    assert.equal(isAgeEligible({ age: 17, weightKg: 65, sexe: "male", annualDonations: 0 }), false);
+    assert.equal(isAgeEligible({ age: 71, weightKg: 65, sexe: "male", annualDonations: 0 }), false);
 });
 
-test("71 ans : ne peut pas donner", () => {
-    assert.equal(canDonate({ age: 71, weightKg: 65 }), false);
+test("isWeightEligible accepts 50 kg or more", () => {
+    assert.equal(isWeightEligible({ age: 30, weightKg: 50, sexe: "male", annualDonations: 0 }), true);
+    assert.equal(isWeightEligible({ age: 30, weightKg: 65, sexe: "male", annualDonations: 0 }), true);
 });
 
-test("48 kg : ne peut pas donner", () => {
-    assert.equal(canDonate({ age: 30, weightKg: 48 }), false);
+test("isWeightEligible rejects less than 50 kg", () => {
+    assert.equal(isWeightEligible({ age: 30, weightKg: 49, sexe: "male", annualDonations: 0 }), false);
 });
 
-// Les bornes
-test("18 ans pile : peut donner", () => {
-    assert.equal(canDonate({ age: 18, weightKg: 65 }), true);
+test("isWithinAnnualDonationLimit accepts 5 donations for a man", () => {
+    assert.equal(isWithinAnnualDonationLimit({ age: 30, weightKg: 65, sexe: "male", annualDonations: 5 }), true);
 });
 
-test("70 ans pile : peut donner", () => {
-    assert.equal(canDonate({ age: 70, weightKg: 65 }), true);
+test("isWithinAnnualDonationLimit rejects 6 donations for a man", () => {
+    assert.equal(isWithinAnnualDonationLimit({ age: 30, weightKg: 65, sexe: "male", annualDonations: 6 }), false);
 });
 
-test("50 kg pile : peut donner", () => {
-    assert.equal(canDonate({ age: 30, weightKg: 50 }), true);
+test("isWithinAnnualDonationLimit accepts 3 donations for a woman", () => {
+    assert.equal(isWithinAnnualDonationLimit({ age: 30, weightKg: 65, sexe: "female", annualDonations: 3 }), true);
 });
 
-test("49 kg : ne peut pas donner", () => {
-    assert.equal(canDonate({ age: 30, weightKg: 49 }), false);
+test("isWithinAnnualDonationLimit rejects 4 donations for a woman", () => {
+    assert.equal(isWithinAnnualDonationLimit({ age: 30, weightKg: 65, sexe: "female", annualDonations: 4 }), false);
+});
+
+test("canDonate accepts a candidate meeting all requirements", () => {
+    assert.equal(canDonate({ age: 30, weightKg: 65, sexe: "male", annualDonations: 5 }), true);
+});
+
+test("canDonate rejects a candidate failing any requirement", () => {
+    assert.equal(canDonate({ age: 17, weightKg: 65, sexe: "male", annualDonations: 0 }), false);
+    assert.equal(canDonate({ age: 30, weightKg: 49, sexe: "male", annualDonations: 0 }), false);
+    assert.equal(canDonate({ age: 30, weightKg: 65, sexe: "female", annualDonations: 4 }), false);
 });
