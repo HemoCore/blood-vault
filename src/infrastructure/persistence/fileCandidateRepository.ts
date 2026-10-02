@@ -1,7 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
-
-import type { Candidate } from "../../domain/candidate.ts";
-import type { CandidateRepository } from "../../domain/ports/candidateRepository.ts";
+import { Candidate } from "../../candidate.ts";
+import { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 
 export function fileCandidateRepository(
   filePath: string,

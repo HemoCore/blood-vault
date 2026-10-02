@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import type { Candidate } from "../domain/candidate.ts";
-import type { CandidateRepository } from "../domain/ports/candidateRepository.ts";
+import { Candidate } from "../candidate.ts";
+import { CandidateRepository } from "../domain/port/candidateRepository.ts";
 
 const EMMA: Candidate = {
   id: "c1",

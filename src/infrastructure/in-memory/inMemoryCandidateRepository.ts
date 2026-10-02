@@ -1,5 +1,5 @@
-import type { Candidate } from "../../domain/candidate.ts";
-import type { CandidateRepository } from "../../domain/ports/candidateRepository.ts";
+import { Candidate } from "../../candidate.js";
+import type { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 
 /** Les candidats pour les tests : rapides, jetables, sans fichier. */
 export function inMemoryCandidateRepository(
