@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import { Candidate } from "../candidate.ts";
+import { Candidate } from "../domain/candidate.ts";
 import { CandidateRepository } from "../domain/port/candidateRepository.ts";
 
 const EMMA: Candidate = {
@@ -10,6 +10,7 @@ const EMMA: Candidate = {
   sexe: "female",
   annualDonations: 2,
   lastDonationAt: null,
+  bloodGroup: "O+"
 };
 
 export function candidateRepositoryContract(

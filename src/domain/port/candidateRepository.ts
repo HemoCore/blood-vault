@@ -1,4 +1,4 @@
-import type { Candidate } from "../../candidate.ts";
+import type { Candidate } from "../candidate.ts";
 
 export interface CandidateRepository {
   byId(id: string): Promise<Candidate | undefined>;

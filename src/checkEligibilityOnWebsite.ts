@@ -1,4 +1,4 @@
-import {Candidate} from "./candidate";
+import {Candidate} from "./domain/candidate";
 import {canDonate} from "./domain/eligibility";
 import { systemClock } from "./infrastructure/clock/systemClock";
 

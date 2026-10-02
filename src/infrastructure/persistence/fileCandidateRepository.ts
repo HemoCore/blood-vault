@@ -1,5 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { Candidate } from "../../candidate.ts";
+import { Candidate } from "../../domain/candidate.ts";
 import { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 
 export function fileCandidateRepository(
