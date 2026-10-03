@@ -1,16 +1,18 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
+import { BloodGroup } from "../domain/bloodGroup.ts";
 import { Candidate } from "../domain/candidate.ts";
 import { CandidateRepository } from "../domain/port/candidateRepository.ts";
+import { Weight } from "../domain/weight.ts";
 
 const EMMA: Candidate = {
   id: "c1",
   age: 30,
-  weightKg: 65,
+  weight: Weight.of(65),
   sexe: "female",
   annualDonations: 2,
   lastDonationAt: null,
-  bloodGroup: "O+"
+  bloodGroup: BloodGroup.of("O+")
 };
 
 export function candidateRepositoryContract(
@@ -37,10 +39,10 @@ export function candidateRepositoryContract(
       const candidates = await make();
 
       await candidates.save(EMMA);
-      await candidates.save({ ...EMMA, weightKg: 70 });
+      await candidates.save({ ...EMMA, weight: Weight.of(70) });
 
       assert.equal(
-        (await candidates.byId("c1"))?.weightKg,
+        (await candidates.byId("c1"))?.weight.toKg(),
         70
       );
     });

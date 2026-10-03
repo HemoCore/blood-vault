@@ -8,6 +8,8 @@ import {
     isWithinAnnualDonationLimit,
 } from "./eligibility";
 import { Candidate } from "./candidate";
+import { BloodGroup } from "./bloodGroup";
+import { Weight } from "./weight";
 
 const TODAY = new Date("2024-02-26");
 
@@ -15,11 +17,11 @@ function makeCandidate(): Candidate {
     return {
         id: "candidate-1",
         age: 30,
-        weightKg: 65,
+        weight: Weight.of(65),
         sexe: "male",
         annualDonations: 0,
         lastDonationAt: null,
-        bloodGroup: "O+",
+        bloodGroup: BloodGroup.of("O+"),
     };
 }
 
@@ -34,12 +36,12 @@ test("isAgeEligible rejects ages outside the boundaries", () => {
 });
 
 test("isWeightEligible accepts 50 kg or more", () => {
-    assert.equal(isWeightEligible({ ...makeCandidate(), weightKg: 50 }), true);
-    assert.equal(isWeightEligible({ ...makeCandidate(), weightKg: 65 }), true);
+    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(50) }), true);
+    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(65) }), true);
 });
 
 test("isWeightEligible rejects less than 50 kg", () => {
-    assert.equal(isWeightEligible({ ...makeCandidate(), weightKg: 49 }), false);
+    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(49) }), false);
 });
 
 test("isWithinAnnualDonationLimit accepts 5 donations for a man", () => {
@@ -89,7 +91,7 @@ describe("canDonate", () => {
 
     test("rejects a candidate failing any requirement", () => {
         assert.equal(canDonate({ ...makeCandidate(), age: 17 }, TODAY), false);
-        assert.equal(canDonate({ ...makeCandidate(), weightKg: 49 }, TODAY), false);
+        assert.equal(canDonate({ ...makeCandidate(), weight: Weight.of(49) }, TODAY), false);
         assert.equal(canDonate({ ...makeCandidate(), sexe: "female", annualDonations: 4 }, TODAY), false);
     });
 

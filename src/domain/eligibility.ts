@@ -11,7 +11,7 @@ export function isAgeEligible(candidate: Candidate): boolean {
 };
 
 export function isWeightEligible(candidate: Candidate): boolean {
-    return candidate.weightKg >= MIN_WEIGHT_KG
+    return candidate.weight.toKg()>= MIN_WEIGHT_KG
 };
 
 export function isWithinAnnualDonationLimit(candidate: Candidate): boolean {

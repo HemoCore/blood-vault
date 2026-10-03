@@ -1,9 +1,10 @@
 import { BloodGroup } from "./bloodGroup";
+import {Weight} from "./weight.ts";
 
 export interface Candidate {
     id: string;
     age: number;
-    weightKg: number;
+    weight: Weight;
     sexe: string;
     annualDonations: number;
     lastDonationAt: Date|null;
