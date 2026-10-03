@@ -8,4 +8,4 @@ export interface Donation {
     bloodGroup: BloodGroup;
     volume: DonationVolume;
     bagExpiresAt: Date;
-};
+}
