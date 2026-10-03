@@ -8,11 +8,11 @@ const WEEKS_BETWEEN_DONATIONS = 8;
 
 export function isAgeEligible(candidate: Candidate): boolean {
     return candidate.age >= MIN_AGE && candidate.age <= MAX_AGE
-};
+}
 
 export function isWeightEligible(candidate: Candidate): boolean {
-    return candidate.weightKg >= MIN_WEIGHT_KG
-};
+    return candidate.weight.toKg()>= MIN_WEIGHT_KG
+}
 
 export function isWithinAnnualDonationLimit(candidate: Candidate): boolean {
     if (candidate.sexe === "male") return candidate.annualDonations <= MALE_MAX_DONATIONS; 

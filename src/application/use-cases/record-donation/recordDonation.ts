@@ -3,6 +3,7 @@ import { canDonate } from "../../../domain/eligibility";
 import { CandidateRepository } from "../../../domain/port/candidateRepository";
 import { Clock } from "../../../domain/port/clock";
 import { Donation } from "../../../domain/donation";
+import { DonationVolume } from "../../../domain/donationVolume";
 import { DonationRepository } from "../../../domain/port/DonationRepository";
 
 export type RecordDonationResult =    
@@ -12,7 +13,7 @@ export type RecordDonationResult =
 
 const BAG_LIFETIME_MS = 42 * 24 * 60 * 60 * 1000 // 42 jours
 
-export async function recordDonation(candidateId: string, candidates: CandidateRepository, donations: DonationRepository, clock: Clock): Promise<RecordDonationResult> {
+export async function recordDonation(candidateId: string, volume: DonationVolume, candidates: CandidateRepository, donations: DonationRepository, clock: Clock): Promise<RecordDonationResult> {
     const candidate = await candidates.byId(candidateId);
 
     if(!candidate) return { status: "not-found"};
@@ -26,6 +27,7 @@ export async function recordDonation(candidateId: string, candidates: CandidateR
         candidateId: candidate.id,
         donatedAt,
         bloodGroup: candidate.bloodGroup,
+        volume,
         bagExpiresAt: new Date(donatedAt.getTime() + BAG_LIFETIME_MS),
     };
 
