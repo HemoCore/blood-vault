@@ -7,7 +7,7 @@ import {
     isWeightEligible,
     isWithinAnnualDonationLimit,
 } from "./eligibility";
-import { Candidate } from "../candidate";
+import { Candidate } from "./candidate";
 
 const TODAY = new Date("2024-02-26");
 
@@ -19,6 +19,7 @@ function makeCandidate(): Candidate {
         sexe: "male",
         annualDonations: 0,
         lastDonationAt: null,
+        bloodGroup: "O+",
     };
 }
 

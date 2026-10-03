@@ -1,3 +1,5 @@
+import { BloodGroup } from "./bloodGroup";
+
 export interface Candidate {
     id: string;
     age: number;
@@ -5,4 +7,5 @@ export interface Candidate {
     sexe: string;
     annualDonations: number;
     lastDonationAt: Date|null;
+    bloodGroup: BloodGroup;
 }

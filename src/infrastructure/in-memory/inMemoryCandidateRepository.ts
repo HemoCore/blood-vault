@@ -1,4 +1,4 @@
-import { Candidate } from "../../candidate.js";
+import { Candidate } from "../../domain/candidate.js";
 import type { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 
 /** Les candidats pour les tests : rapides, jetables, sans fichier. */
