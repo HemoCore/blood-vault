@@ -3,6 +3,7 @@ import { BloodGroup } from "../../domain/bloodGroup.ts";
 import { Candidate } from "../../domain/candidate.ts";
 import { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 import { Weight } from "../../domain/weight.ts";
+import { Email } from "../../domain/email.ts";
 
 /** Un candidat tel qu'il est écrit dans le fichier JSON : que des valeurs simples. */
 interface CandidateRow {
@@ -13,6 +14,7 @@ interface CandidateRow {
   annualDonations: number;
   lastDonationAt: string | null;
   bloodGroup: string;
+  email: string
 }
 
 function toRow(candidate: Candidate): CandidateRow {
@@ -24,6 +26,7 @@ function toRow(candidate: Candidate): CandidateRow {
     annualDonations: candidate.annualDonations,
     lastDonationAt: candidate.lastDonationAt?.toISOString() ?? null,
     bloodGroup: candidate.bloodGroup.toString(),
+    email: candidate.email.toString(),
   };
 }
 
@@ -36,6 +39,7 @@ function toCandidate(row: CandidateRow): Candidate {
     annualDonations: row.annualDonations,
     lastDonationAt: row.lastDonationAt ? new Date(row.lastDonationAt) : null,
     bloodGroup: BloodGroup.of(row.bloodGroup),
+    email: Email.of(row.email),
   };
 }
 

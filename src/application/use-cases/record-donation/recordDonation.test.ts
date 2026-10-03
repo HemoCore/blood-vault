@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { BloodGroup } from "../../../domain/bloodGroup.ts";
 import type { Candidate } from "../../../domain/candidate.ts";
 import { DonationVolume } from "../../../domain/donationVolume.ts";
+import { Email } from "../../../domain/email.ts";
 import { Weight } from "../../../domain/weight.ts";
 import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
 import { inMemoryDonationRepository } from "../../../infrastructure/in-memory/inMemoryDonationRepository.ts";
@@ -12,6 +13,7 @@ import { recordDonation } from "./recordDonation.ts";
 const TODAY = new Date("2026-10-03");
 const ELIGIBLE_CANDIDATE: Candidate = {
   id: "candidate-1",
+  email: Email.of("donor@example.com"),
   age: 30,
   weight: Weight.of(65),
   sexe: "male",
@@ -36,8 +38,8 @@ test("records an eligible donation and expires its bag after 42 days", async () 
   assert.equal(savedDonations[0].bloodGroup.toString(), "O+");
   assert.equal(savedDonations[0].volume.toMl(), 450);
   assert.equal(
-    savedDonations[0].bagExpiresAt.getTime(),
-    new Date("2026-11-14").getTime(),
+      savedDonations[0].bagExpiresAt.getTime(),
+      new Date("2026-11-14").getTime(),
   );
 
   const updatedCandidate = await candidates.byId("candidate-1");
