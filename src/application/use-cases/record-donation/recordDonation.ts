@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { canDonate } from "./domain/eligibility";
-import { CandidateRepository } from "./domain/port/candidateRepository";
-import { Clock } from "./domain/port/clock";
-import { Donation } from "./domain/donation";
-import { DonationRepository } from "./domain/port/DonationRepository";
+import { canDonate } from "../../../domain/eligibility";
+import { CandidateRepository } from "../../../domain/port/candidateRepository";
+import { Clock } from "../../../domain/port/clock";
+import { Donation } from "../../../domain/donation";
+import { DonationRepository } from "../../../domain/port/DonationRepository";
 
 export type RecordDonationResult =    
         | { status: "not-found" }
@@ -29,7 +29,7 @@ export async function recordDonation(candidateId: string, candidates: CandidateR
         bagExpiresAt: new Date(donatedAt.getTime() + BAG_LIFETIME_MS),
     };
 
-    await candidates.add({
+    await candidates.save({
         ...candidate,
         annualDonations: candidate.annualDonations + 1,
         lastDonationAt: donatedAt,

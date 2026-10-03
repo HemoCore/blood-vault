@@ -1,4 +1,4 @@
-import { Candidate } from "../../domain/candidate.js";
+import { Candidate } from "../../domain/candidate.ts";
 import type { CandidateRepository } from "../../domain/port/candidateRepository.ts";
 
 /** Les candidats pour les tests : rapides, jetables, sans fichier. */
@@ -15,7 +15,7 @@ export function inMemoryCandidateRepository(
       return rows.get(id);
     },
 
-    async add(candidate) {
+    async save(candidate) {
       rows.set(candidate.id, candidate);
     },
   };

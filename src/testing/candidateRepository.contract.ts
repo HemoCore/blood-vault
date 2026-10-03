@@ -28,7 +28,7 @@ export function candidateRepositoryContract(
     test("gives back the candidate that was added", async () => {
       const candidates = await make();
 
-      await candidates.add(EMMA);
+      await candidates.save(EMMA);
 
       assert.deepEqual(await candidates.byId("c1"), EMMA);
     });
@@ -36,8 +36,8 @@ export function candidateRepositoryContract(
     test("adding a candidate already known replaces it", async () => {
       const candidates = await make();
 
-      await candidates.add(EMMA);
-      await candidates.add({ ...EMMA, weightKg: 70 });
+      await candidates.save(EMMA);
+      await candidates.save({ ...EMMA, weightKg: 70 });
 
       assert.equal(
         (await candidates.byId("c1"))?.weightKg,

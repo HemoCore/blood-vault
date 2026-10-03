@@ -38,7 +38,7 @@ export function fileCandidateRepository(
       return candidates.find((candidate) => candidate.id === id);
     },
 
-    async add(candidate: Candidate): Promise<void> {
+    async save(candidate: Candidate): Promise<void> {
       const candidates = await readCandidates();
 
         const rows = candidates.filter(

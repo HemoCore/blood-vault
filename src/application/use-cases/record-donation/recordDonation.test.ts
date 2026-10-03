@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import type { Candidate } from "./domain/candidate.ts";
-import { inMemoryCandidateRepository } from "./infrastructure/in-memory/inMemoryCandidateRepository.ts";
-import { inMemoryDonationRepository } from "./infrastructure/in-memory/inMemoryDonationRepository.ts";
+import type { Candidate } from "../../../domain/candidate.ts";
+import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
+import { inMemoryDonationRepository } from "../../../infrastructure/in-memory/inMemoryDonationRepository.ts";
 import { recordDonation } from "./recordDonation.ts";
 
 const TODAY = new Date("2026-10-03");
