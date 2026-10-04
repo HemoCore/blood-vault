@@ -1,7 +1,7 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { SqlCandidateRepository } from './sqlCandidateRepository.ts';
-import { initializeDatabase, cleanDatabase } from './database.ts';
+import {initializeDatabase, cleanDatabase, closeDatabase} from './database.ts';
 import { Candidate } from '../../../domain/candidate.ts';
 import { BloodGroup } from '../../../domain/bloodGroup.ts';
 import { Email } from '../../../domain/email.ts';
@@ -22,10 +22,13 @@ const TEST_CANDIDATE: Candidate = {
 
 before(async () => {
     await initializeDatabase();
+    await cleanDatabase();
+
 });
 
 after(async () => {
     await cleanDatabase();
+    await closeDatabase();
 });
 
 test('SqlCandidateRepository saves and retrieves a candidate from Postgres', async () => {

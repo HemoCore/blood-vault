@@ -5,7 +5,7 @@
     "typescript": "^7.0.2"
   },
   "scripts": {
-    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "test": "node --import tsx --test --test-concurrency=1 \"src/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

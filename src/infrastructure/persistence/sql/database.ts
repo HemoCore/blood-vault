@@ -20,10 +20,33 @@ export async function initializeDatabase(): Promise<void> {
                                                   blood_group TEXT NOT NULL
         )
     `;
+
+    // Table des collectes
+    await sql`
+    CREATE TABLE IF NOT EXISTS collections (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      location TEXT NOT NULL,
+      max_slots INTEGER NOT NULL
+    )
+  `;
+
+    //  Table des rendez-vous
+    await sql`
+    CREATE TABLE IF NOT EXISTS appointments (
+      id TEXT PRIMARY KEY,
+      collection_id TEXT REFERENCES collections(id),
+      candidate_id TEXT NOT NULL,
+      booked_at TIMESTAMPTZ NOT NULL
+    )
+  `;
 }
 
 // Fonction pour vider la table entre les tests
 // noinspection SqlResolve
 export async function cleanDatabase(): Promise<void> {
-    await sql`TRUNCATE TABLE candidates`;
+    await sql`TRUNCATE TABLE appointments, collections, candidates CASCADE`;
+}
+export async function closeDatabase(): Promise<void> {
+    await sql.end();
 }
