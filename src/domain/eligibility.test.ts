@@ -6,16 +6,18 @@ import {
     isAgeEligible,
     isWeightEligible,
     isWithinAnnualDonationLimit,
-} from "./eligibility";
-import { Candidate } from "./candidate";
-import { BloodGroup } from "./bloodGroup";
-import { Weight } from "./weight";
+} from "./eligibility.ts";
+import { Candidate } from "./candidate.ts";
+import { BloodGroup } from "./bloodGroup.ts";
+import { Email } from "./email.ts";
+import { Weight } from "./weight.ts";
 
 const TODAY = new Date("2024-02-26");
 
 function makeCandidate(): Candidate {
     return {
         id: "candidate-1",
+        email: Email.of("donor@example.com"),
         age: 30,
         weight: Weight.of(65),
         sexe: "male",
