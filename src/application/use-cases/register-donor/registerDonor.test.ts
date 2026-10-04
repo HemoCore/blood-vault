@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
 import { inMemoryMailer } from "../../../infrastructure/in-memory/inMemoryMailer.ts";
-import { registerDonor } from "./registerDonor.ts";
+import { RegisterDonorHandler } from "./registerDonor.ts";
 
 const COMMAND = {
     id: "donor-1",
@@ -17,13 +17,14 @@ const COMMAND = {
 function setup() {
     const candidates = inMemoryCandidateRepository();
     const { mailer, sent } = inMemoryMailer();
-    return { candidates, mailer, sent };
+    const handler = new RegisterDonorHandler(candidates, mailer);
+    return { candidates, mailer, sent, handler };
 }
 
 test("registers a donor and finds them afterwards", async () => {
-    const { candidates, mailer } = setup();
+    const { candidates, handler } = setup();
 
-    const result = await registerDonor(COMMAND, candidates, mailer);
+    const result = await handler.handle(COMMAND);
 
     assert.equal(result.status, "registered");
     const found = await candidates.byId("donor-1");
@@ -34,9 +35,9 @@ test("registers a donor and finds them afterwards", async () => {
 });
 
 test("sends the donor card to the donor's address", async () => {
-    const { candidates, mailer, sent } = setup();
+    const { handler, sent } = setup();
 
-    await registerDonor(COMMAND, candidates, mailer);
+    await handler.handle(COMMAND);
 
     assert.equal(sent.length, 1);
     assert.equal(sent[0].to, "donor@example.com");
@@ -45,19 +46,19 @@ test("sends the donor card to the donor's address", async () => {
 });
 
 test("sends the donor card only once if the donor registers twice", async () => {
-    const { candidates, mailer, sent } = setup();
+    const { handler, sent } = setup();
 
-    await registerDonor(COMMAND, candidates, mailer);
-    const second = await registerDonor(COMMAND, candidates, mailer);
+    await handler.handle(COMMAND);
+    const second = await handler.handle(COMMAND);
 
     assert.equal(second.status, "already-registered");
     assert.equal(sent.length, 1);
 });
 
 test("refuses a malformed email without saving or sending anything", async () => {
-    const { candidates, mailer, sent } = setup();
+    const { candidates, handler, sent } = setup();
 
-    const result = await registerDonor({ ...COMMAND, email: "not-an-email" }, candidates, mailer);
+    const result = await handler.handle({ ...COMMAND, email: "not-an-email" });
 
     assert.equal(result.status, "invalid");
     assert.equal(await candidates.byId("donor-1"), undefined);
@@ -65,9 +66,9 @@ test("refuses a malformed email without saving or sending anything", async () =>
 });
 
 test("refuses an invalid blood group without saving or sending anything", async () => {
-    const { candidates, mailer, sent } = setup();
+    const { candidates, handler, sent } = setup();
 
-    const result = await registerDonor({ ...COMMAND, bloodGroup: "Z+" }, candidates, mailer);
+    const result = await handler.handle({ ...COMMAND, bloodGroup: "Z+" });
 
     assert.equal(result.status, "invalid");
     assert.equal(await candidates.byId("donor-1"), undefined);
@@ -76,9 +77,9 @@ test("refuses an invalid blood group without saving or sending anything", async 
 
 for (const weightKg of [0, -5]) {
     test(`refuses a weight of ${weightKg} kg without saving or sending anything`, async () => {
-        const { candidates, mailer, sent } = setup();
+        const { candidates, handler, sent } = setup();
 
-        const result = await registerDonor({ ...COMMAND, weightKg }, candidates, mailer);
+        const result = await handler.handle({ ...COMMAND, weightKg });
 
         assert.equal(result.status, "invalid");
         assert.equal(await candidates.byId("donor-1"), undefined);
