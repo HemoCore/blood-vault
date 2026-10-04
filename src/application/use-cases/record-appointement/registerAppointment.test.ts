@@ -1,13 +1,16 @@
-import { Candidate } from "../../../domain/candidate";
-import { CandidateRepository } from "../../../domain/port/candidateRepository";
-import { InMemoryAppointmentRepository } from "../../../infrastructure/in-memory/inMemoryAppointmentRepository";
-import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository";
-import { BookAppointmentHandler } from "./registerAppointment"; // Assurez-vous du nom du fichier
-import { describe, test } from "node:test";
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import type { Candidate } from "../../../domain/candidate";
+import { Collection } from "../../../domain/collect"
 import { Email } from "../../../domain/email";
 import { Weight } from "../../../domain/weight";
 import { BloodGroup } from "../../../domain/bloodGroup";
-import assert from "node:assert/strict";
+
+import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository";
+import { inMemoryCollectionRepository } from "../../../infrastructure/in-memory/inMemoryCollectionRepository";
+
+import { BookAppointmentHandler } from "./registerAppointment";
 
 const TODAY = new Date("2026-10-03");
 const clock = { now: () => TODAY };
@@ -25,32 +28,65 @@ const CANDIDATE_1: Candidate = {
 
 test("books an appointment when slots are available", async () => {
     const candidates = inMemoryCandidateRepository([CANDIDATE_1]);
-    const appointments = new InMemoryAppointmentRepository();
-    const handler = new BookAppointmentHandler(candidates, appointments, clock);
-    const collectionId = "collection-1";
-    const maxSlots = 40;
+
+    const collection = new Collection({
+        id: "collection-1",
+        name: "Blood donation collection",
+        location: "Town hall",
+        maxSlots: 40,
+        createdAt: TODAY,
+    });
+
+    const collections = inMemoryCollectionRepository([collection]);
+
+    const handler = new BookAppointmentHandler(
+        candidates,
+        collections,
+        clock,
+    );
 
     const result = await handler.handle({
-        collectionId,
+        collectionId: collection.id,
         candidateId: CANDIDATE_1.id,
-        maxSlots,
     });
 
     assert.equal(result.status, "booked");
-    
-    const savedAppointments = await appointments.findByCollection(collectionId);
-    assert.equal(savedAppointments.length, 1);
-    assert.equal(savedAppointments[0].candidateId, "candidate-1");
-    assert.equal(savedAppointments[0].collectionId, "collection-1");
-    assert.equal(savedAppointments[0].bookedAt.getTime(), TODAY.getTime());
+
+    const savedCollection = await collections.byId(collection.id);
+
+    assert.equal(savedCollection?.appointments.length, 1);
+    assert.equal(
+        savedCollection?.appointments[0].candidateId,
+        "candidate-1",
+    );
+    assert.equal(
+        savedCollection?.appointments[0].collectionId,
+        "collection-1",
+    );
+    assert.equal(
+        savedCollection?.appointments[0].bookedAt.getTime(),
+        TODAY.getTime(),
+    );
 });
 
 test("refuses the 41st appointment on a 40-slot collection", async () => {
     const candidates = inMemoryCandidateRepository();
-    const appointments = new InMemoryAppointmentRepository();
-    const handler = new BookAppointmentHandler(candidates, appointments, clock);
-    const collectionId = "collection-full";
-    const maxSlots = 40;
+
+    const collection = new Collection({
+        id: "collection-full",
+        name: "Blood donation collection",
+        location: "Town hall",
+        maxSlots: 40,
+        createdAt: TODAY,
+    });
+
+    const collections = inMemoryCollectionRepository([collection]);
+
+    const handler = new BookAppointmentHandler(
+        candidates,
+        collections,
+        clock,
+    );
 
     for (let i = 1; i <= 40; i++) {
         const candidate: Candidate = {
@@ -63,12 +99,15 @@ test("refuses the 41st appointment on a 40-slot collection", async () => {
             lastDonationAt: null,
             bloodGroup: BloodGroup.of("O+"),
         };
+
         await candidates.save(candidate);
-        await handler.handle({
-            collectionId,
+
+        const result = await handler.handle({
+            collectionId: collection.id,
             candidateId: candidate.id,
-            maxSlots,
         });
+
+        assert.equal(result.status, "booked");
     }
 
     const candidate41: Candidate = {
@@ -81,41 +120,57 @@ test("refuses the 41st appointment on a 40-slot collection", async () => {
         lastDonationAt: null,
         bloodGroup: BloodGroup.of("O+"),
     };
+
     await candidates.save(candidate41);
-    
+
     const result = await handler.handle({
-        collectionId,
+        collectionId: collection.id,
         candidateId: candidate41.id,
-        maxSlots,
     });
 
     assert.equal(result.status, "no-slots-left");
-    
-    const savedAppointments = await appointments.findByCollection(collectionId);
-    assert.equal(savedAppointments.length, 40);
+
+    const savedCollection = await collections.byId(collection.id);
+
+    assert.equal(savedCollection?.appointments.length, 40);
+    assert.equal(savedCollection?.slotsLeft, 0);
 });
 
 test("refuses if candidate already has an appointment in this collection", async () => {
     const candidates = inMemoryCandidateRepository([CANDIDATE_1]);
-    const appointments = new InMemoryAppointmentRepository();
-    const handler = new BookAppointmentHandler(candidates, appointments, clock);
-    const collectionId = "collection-1";
-    const maxSlots = 40;
 
-    await handler.handle({
-        collectionId,
-        candidateId: CANDIDATE_1.id,
-        maxSlots,
+    const collection = new Collection({
+        id: "collection-1",
+        name: "Blood donation collection",
+        location: "Town hall",
+        maxSlots: 40,
+        createdAt: TODAY,
     });
 
-    const result = await handler.handle({
-        collectionId,
+    const collections = inMemoryCollectionRepository([collection]);
+
+    const handler = new BookAppointmentHandler(
+        candidates,
+        collections,
+        clock,
+    );
+
+    const firstResult = await handler.handle({
+        collectionId: collection.id,
         candidateId: CANDIDATE_1.id,
-        maxSlots,
+    });
+
+    assert.equal(firstResult.status, "booked");
+
+    const result = await handler.handle({
+        collectionId: collection.id,
+        candidateId: CANDIDATE_1.id,
     });
 
     assert.equal(result.status, "already-booked");
-    
-    const savedAppointments = await appointments.findByCollection(collectionId);
-    assert.equal(savedAppointments.length, 1);
+
+    const savedCollection = await collections.byId(collection.id);
+
+    assert.equal(savedCollection?.appointments.length, 1);
+    assert.equal(savedCollection?.slotsLeft, 39);
 });
