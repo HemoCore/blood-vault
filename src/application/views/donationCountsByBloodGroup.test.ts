@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { BloodGroup } from "../../domain/values-object/bloodGroup.ts";
 import type { Donation } from "../../domain/models/donation.ts";
 import { DonationVolume } from "../../domain/values-object/donationVolume.ts";
+import { DonationType } from "../../domain/values-object/donationType.ts";
 import { inMemoryDonationRepository } from "../../infrastructure/in-memory/inMemoryDonationRepository.ts";
 import { donationCountsByBloodGroup } from "./donationCountsByBloodGroup.ts";
 
@@ -16,6 +17,7 @@ function aDonation(id: string, bloodGroup: string, donatedAt: Date): Donation {
     donatedAt,
     bloodGroup: BloodGroup.of(bloodGroup),
     volume: DonationVolume.of(450),
+    donationType: DonationType.WHOLE_BLOOD,
     bagExpiresAt: new Date(donatedAt.getTime() + 42 * 24 * 60 * 60 * 1000),
   };
 }

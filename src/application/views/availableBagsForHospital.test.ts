@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { BloodGroup } from "../../domain/values-object/bloodGroup.ts";
 import type { Donation } from "../../domain/models/donation.ts";
 import { DonationVolume } from "../../domain/values-object/donationVolume.ts";
+import { DonationType } from "../../domain/values-object/donationType.ts";
 import { inMemoryDonationRepository } from "../../infrastructure/in-memory/inMemoryDonationRepository.ts";
 import { availableBagsForHospital } from "./availableBagsForHospital.ts";
 
@@ -15,6 +16,7 @@ test("returns only each bag's blood group and expiry", async () => {
         donatedAt: new Date("2026-08-01T12:00:00.000Z"),
         bloodGroup: BloodGroup.of("O-"),
         volume: DonationVolume.of(450),
+        donationType: DonationType.WHOLE_BLOOD,
         bagExpiresAt: new Date("2026-09-12T12:00:00.000Z"),
     };
     await donations.add(expiredDonation);

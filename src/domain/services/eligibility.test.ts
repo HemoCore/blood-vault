@@ -11,6 +11,7 @@ import { Candidate } from "../models/candidate.ts";
 import { BloodGroup } from "../values-object/bloodGroup.ts";
 import { Email } from "../values-object/email.ts";
 import { Weight } from "../values-object/weight.ts";
+import { DonationType } from "../values-object/donationType.ts";
 
 const TODAY = new Date("2024-02-26");
 
@@ -78,6 +79,23 @@ describe("US4: 8 weeks between donations", () => {
         const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-01-01") };
         const today = new Date("2024-02-26"); // 8 semaines après
         assert.equal(hasEnoughTimeSinceLastDonation(candidate, today), true);
+    });
+});
+
+describe("Interval depends on donation type", () => {
+    const date = new Date("2024-02-26");
+
+    test("plasma is allowed after 2 weeks", () => {
+        const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-02-12") };
+        assert.equal(hasEnoughTimeSinceLastDonation(candidate, date, DonationType.PLASMA), true);
+    });
+
+    test("platelets are refused before 4 weeks and allowed at 4 weeks", () => {
+        const threeWeeksAgo = { ...makeCandidate(), lastDonationAt: new Date("2024-02-05") };
+        const fourWeeksAgo = { ...makeCandidate(), lastDonationAt: new Date("2024-01-29") };
+
+        assert.equal(hasEnoughTimeSinceLastDonation(threeWeeksAgo, date, DonationType.PLATELETS), false);
+        assert.equal(hasEnoughTimeSinceLastDonation(fourWeeksAgo, date, DonationType.PLATELETS), true);
     });
 });
 

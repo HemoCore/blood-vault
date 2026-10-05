@@ -1,10 +1,10 @@
-import {Candidate} from "../models/candidate.ts";
+import type { Candidate } from "../models/candidate.ts";
+import { DonationType } from "../values-object/donationType.ts";
 const MIN_AGE = 18;
 const MAX_AGE = 70;
 const MIN_WEIGHT_KG = 50;
 const MALE_MAX_DONATIONS = 5;
 const FEMALE_MAX_DONATIONS = 3;
-const WEEKS_BETWEEN_DONATIONS = 8;
 
 export function isAgeEligible(candidate: Candidate): boolean {
     return candidate.age >= MIN_AGE && candidate.age <= MAX_AGE
@@ -19,23 +19,27 @@ export function isWithinAnnualDonationLimit(candidate: Candidate): boolean {
     else return candidate.annualDonations <= FEMALE_MAX_DONATIONS;
 }
 
-export function canDonate(candidate: Candidate, currentDate:Date): boolean {
+export function canDonate(
+    candidate: Candidate,
+    currentDate: Date,
+    donationType: DonationType = DonationType.WHOLE_BLOOD,
+): boolean {
     return isAgeEligible(candidate) && isWeightEligible(candidate) &&
         isWithinAnnualDonationLimit(candidate) &&
-        hasEnoughTimeSinceLastDonation(candidate,currentDate);
+        hasEnoughTimeSinceLastDonation(candidate, currentDate, donationType);
 }
 
 export function hasEnoughTimeSinceLastDonation(
     candidate: Candidate,
-    currentDate: Date
+    currentDate: Date,
+    donationType: DonationType = DonationType.WHOLE_BLOOD,
 ): boolean {
     if (candidate.lastDonationAt === null) {
         return true;
     }
 
-    const weeksSinceLastDonation =
-        (currentDate.getTime() - candidate.lastDonationAt.getTime())
-        / (1000 * 60 * 60 * 24 * 7);
+    const elapsedMs = currentDate.getTime() - candidate.lastDonationAt.getTime();
+    const requiredMs = donationType.minimumIntervalMs;
 
-    return weeksSinceLastDonation >= WEEKS_BETWEEN_DONATIONS;
+    return elapsedMs >= requiredMs;
 }

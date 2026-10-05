@@ -6,22 +6,39 @@ import { Donation } from "../../../domain/models/donation.ts";
 import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
 import { DonationRepository } from "../../../domain/ports/DonationRepository";
 import { IdGenerator } from "../../../domain/ports/idGenerator.ts";
+import { DonationType } from "../../../domain/values-object/donationType.ts";
 
 export type RecordDonationResult =    
         | { status: "not-found" }
         | { status: "ineligible" }
+        | { status: "invalid-type" }
         | { status: "recorded"; donation: Donation };
 
-const BAG_LIFETIME_MS = 42 * 24 * 60 * 60 * 1000 // 42 jours
+export async function recordDonation(
+    candidateId: string,
+    volume: DonationVolume,
+    candidates: CandidateRepository,
+    donations: DonationRepository,
+    clock: Clock,
+    uuid: IdGenerator,
+    donationTypeName = "WHOLE_BLOOD"
+): Promise<RecordDonationResult> {
+    let donationType: DonationType;
+    try {
+        donationType = DonationType.of(donationTypeName);
+    } catch {
+        return { status: "invalid-type" };
+    }
 
-export async function recordDonation(candidateId: string, volume: DonationVolume, candidates: CandidateRepository, donations: DonationRepository, clock: Clock, uuid: IdGenerator): Promise<RecordDonationResult> {
     const candidate = await candidates.byId(candidateId);
 
     if(!candidate) return { status: "not-found"};
 
     const donatedAt = clock.now();
 
-    if(!canDonate(candidate, donatedAt)) return { status: "ineligible"};
+    if (!canDonate(candidate, donatedAt, donationType)) {
+        return { status: "ineligible" };
+    }
 
     const donationId = uuid.next();
 
@@ -31,7 +48,8 @@ export async function recordDonation(candidateId: string, volume: DonationVolume
         donatedAt,
         bloodGroup: candidate.bloodGroup,
         volume,
-        bagExpiresAt: new Date(donatedAt.getTime() + BAG_LIFETIME_MS),
+        donationType,
+        bagExpiresAt: donationType.bagExpiresAtFrom(donatedAt),
     };
 
     await candidates.save({
