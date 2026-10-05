@@ -5,6 +5,7 @@ import { Clock } from "../../../domain/ports/clock";
 import { Donation } from "../../../domain/models/donation.ts";
 import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
 import { DonationRepository } from "../../../domain/ports/DonationRepository";
+import { IdGenerator } from "../../../domain/ports/idGenerator.ts";
 
 export type RecordDonationResult =    
         | { status: "not-found" }
@@ -13,7 +14,7 @@ export type RecordDonationResult =
 
 const BAG_LIFETIME_MS = 42 * 24 * 60 * 60 * 1000 // 42 jours
 
-export async function recordDonation(candidateId: string, volume: DonationVolume, candidates: CandidateRepository, donations: DonationRepository, clock: Clock): Promise<RecordDonationResult> {
+export async function recordDonation(candidateId: string, volume: DonationVolume, candidates: CandidateRepository, donations: DonationRepository, clock: Clock, uuid: IdGenerator): Promise<RecordDonationResult> {
     const candidate = await candidates.byId(candidateId);
 
     if(!candidate) return { status: "not-found"};
@@ -22,8 +23,10 @@ export async function recordDonation(candidateId: string, volume: DonationVolume
 
     if(!canDonate(candidate, donatedAt)) return { status: "ineligible"};
 
+    const donationId = uuid.next();
+
     const donation: Donation = {
-        id: randomUUID(),
+        id: donationId,
         candidateId: candidate.id,
         donatedAt,
         bloodGroup: candidate.bloodGroup,
