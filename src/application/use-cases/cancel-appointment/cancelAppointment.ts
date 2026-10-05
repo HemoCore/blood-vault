@@ -1,7 +1,8 @@
-import type { AppointmentRepository } from "../../../domain/port/appointmentRepository.ts";
+import type { CollectionRepository } from "../../../domain/port/collectionRepository.ts";
 
 export interface CancelAppointmentCommand {
     appointmentId: string;
+    collectionId: string;
 }
 
 export type CancelAppointmentResult =
@@ -9,15 +10,37 @@ export type CancelAppointmentResult =
     | { status: "cancelled"; appointmentId: string };
 
 export class CancelAppointmentHandler {
-    constructor(private readonly appointments: AppointmentRepository) {}
+    constructor(
+        private readonly collections: CollectionRepository,
+    ) {}
 
-    async handle(command: CancelAppointmentCommand): Promise<CancelAppointmentResult> {
-        const wasRemoved = await this.appointments.remove(command.appointmentId);
+    async handle(
+        command: CancelAppointmentCommand,
+    ): Promise<CancelAppointmentResult> {
+        const collection = await this.collections.byId(command.collectionId);
 
-        if (!wasRemoved) {
+        if (!collection) {
             return { status: "not-found" };
         }
 
-        return { status: "cancelled", appointmentId: command.appointmentId };
+        try {
+            collection.cancel(command.appointmentId);
+        } catch (error) {
+            if (
+                error instanceof Error &&
+                error.message === "appointment not found"
+            ) {
+                return { status: "not-found" };
+            }
+
+            throw error;
+        }
+
+        await this.collections.save(collection);
+
+        return {
+            status: "cancelled",
+            appointmentId: command.appointmentId,
+        };
     }
 }

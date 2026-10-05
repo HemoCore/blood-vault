@@ -3,10 +3,13 @@ import { test } from "node:test";
 
 import { BloodGroup } from "../../../domain/bloodGroup.ts";
 import type { Candidate } from "../../../domain/candidate.ts";
+import { Collection } from "../../../domain/collect.ts";
 import { Email } from "../../../domain/email.ts";
 import { Weight } from "../../../domain/weight.ts";
+
 import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
-import { InMemoryAppointmentRepository } from "../../../infrastructure/in-memory/inMemoryAppointmentRepository.ts";
+import { inMemoryCollectionRepository } from "../../../infrastructure/in-memory/inMemoryCollectionRepository.ts";
+
 import { BookAppointmentHandler } from "../record-appointement/registerAppointment.ts";
 import { CancelAppointmentHandler } from "./cancelAppointment.ts";
 
@@ -26,52 +29,88 @@ const CANDIDATE: Candidate = {
 
 test("cancelling an appointment frees the slot", async () => {
     const candidates = inMemoryCandidateRepository([CANDIDATE]);
-    const appointments = new InMemoryAppointmentRepository();
-    const bookHandler = new BookAppointmentHandler(candidates, appointments, clock);
-    const cancelHandler = new CancelAppointmentHandler(appointments);
-    
-    const collectionId = "collection-1";
-    const maxSlots = 1;
+
+    const collection = new Collection({
+        id: "collection-1",
+        name: "Blood donation collection",
+        location: "Town hall",
+        maxSlots: 1,
+        createdAt: TODAY,
+    });
+
+    const collections = inMemoryCollectionRepository([collection]);
+
+    const bookHandler = new BookAppointmentHandler(
+        candidates,
+        collections,
+        clock,
+    );
+
+    const cancelHandler = new CancelAppointmentHandler(collections);
 
     const bookResult = await bookHandler.handle({
-        collectionId,
+        collectionId: collection.id,
         candidateId: CANDIDATE.id,
-        maxSlots,
     });
-    
-    assert.equal(bookResult.status, "booked");
-    if (bookResult.status !== "booked") return; 
-    
-    const appointmentId = bookResult.appointmentId;
-    assert.equal((await appointments.findByCollection(collectionId)).length, 1);
 
-    const cancelResult = await cancelHandler.handle({ appointmentId });
+    assert.equal(bookResult.status, "booked");
+
+    if (bookResult.status !== "booked") {
+        return;
+    }
+
+    const appointmentId = bookResult.appointmentId;
+
+    const collectionAfterBooking = await collections.byId(collection.id);
+
+    assert.equal(collectionAfterBooking?.appointments.length, 1);
+    assert.equal(collectionAfterBooking?.slotsLeft, 0);
+
+    const cancelResult = await cancelHandler.handle({
+        collectionId: collection.id,
+        appointmentId,
+    });
+
     assert.equal(cancelResult.status, "cancelled");
 
-    const remainingAppointments = await appointments.findByCollection(collectionId);
-    assert.equal(remainingAppointments.length, 0);
+    const collectionAfterCancellation = await collections.byId(collection.id);
+
+    assert.equal(collectionAfterCancellation?.appointments.length, 0);
+    assert.equal(collectionAfterCancellation?.slotsLeft, 1);
 
     const candidate2: Candidate = {
         ...CANDIDATE,
         id: "candidate-2",
         email: Email.of("donor2@example.com"),
     };
+
     await candidates.save(candidate2);
 
     const newBookResult = await bookHandler.handle({
-        collectionId,
+        collectionId: collection.id,
         candidateId: candidate2.id,
-        maxSlots,
     });
-    
-    assert.equal(newBookResult.status, "booked"); 
+
+    assert.equal(newBookResult.status, "booked");
 });
 
 test("cancelling a non-existent appointment returns not-found", async () => {
-    const appointments = new InMemoryAppointmentRepository();
-    const cancelHandler = new CancelAppointmentHandler(appointments);
-    
-    const result = await cancelHandler.handle({ appointmentId: "fake-appointment-id" });
-    
+    const collection = new Collection({
+        id: "collection-1",
+        name: "Blood donation collection",
+        location: "Town hall",
+        maxSlots: 40,
+        createdAt: TODAY,
+    });
+
+    const collections = inMemoryCollectionRepository([collection]);
+
+    const cancelHandler = new CancelAppointmentHandler(collections);
+
+    const result = await cancelHandler.handle({
+        collectionId: collection.id,
+        appointmentId: "fake-appointment-id",
+    });
+
     assert.equal(result.status, "not-found");
 });
