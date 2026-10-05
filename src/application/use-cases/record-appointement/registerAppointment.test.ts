@@ -15,6 +15,11 @@ import { BookAppointmentHandler } from "./registerAppointment";
 const TODAY = new Date("2026-10-03");
 const clock = { now: () => TODAY };
 
+function sequentialIds() {
+    let current = 0;
+    return { next: () => `appointment-${++current}` };
+}
+
 const CANDIDATE_1: Candidate = {
     id: "candidate-1",
     email: Email.of("donor1@example.com"),
@@ -43,6 +48,7 @@ test("books an appointment when slots are available", async () => {
         candidates,
         collections,
         clock,
+        sequentialIds(),
     );
 
     const result = await handler.handle({
@@ -86,6 +92,7 @@ test("refuses the 41st appointment on a 40-slot collection", async () => {
         candidates,
         collections,
         clock,
+        sequentialIds(),
     );
 
     for (let i = 1; i <= 40; i++) {
@@ -153,6 +160,7 @@ test("refuses if candidate already has an appointment in this collection", async
         candidates,
         collections,
         clock,
+        sequentialIds(),
     );
 
     const firstResult = await handler.handle({

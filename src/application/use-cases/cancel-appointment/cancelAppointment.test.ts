@@ -16,6 +16,11 @@ import { CancelAppointmentHandler } from "./cancelAppointment.ts";
 const TODAY = new Date("2026-10-03");
 const clock = { now: () => TODAY };
 
+function sequentialIds() {
+    let current = 0;
+    return { next: () => `appointment-${++current}` };
+}
+
 const CANDIDATE: Candidate = {
     id: "candidate-1",
     email: Email.of("donor@example.com"),
@@ -44,6 +49,7 @@ test("cancelling an appointment frees the slot", async () => {
         candidates,
         collections,
         clock,
+        sequentialIds(),
     );
 
     const cancelHandler = new CancelAppointmentHandler(collections);
