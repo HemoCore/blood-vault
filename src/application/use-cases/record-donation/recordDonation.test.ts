@@ -23,12 +23,13 @@ const ELIGIBLE_CANDIDATE: Candidate = {
 };
 const clock = { now: () => TODAY };
 const VOLUME = DonationVolume.of(450);
+const uuid = { next: () => "donation-1" };
 
 test("records an eligible donation and expires its bag after 42 days", async () => {
   const candidates = inMemoryCandidateRepository([ELIGIBLE_CANDIDATE]);
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation("candidate-1", VOLUME, candidates, donations, clock);
+  const result = await recordDonation("candidate-1", VOLUME, candidates, donations, clock, uuid);
 
   assert.equal(result.status, "recorded");
   const savedDonations = await donations.all();
@@ -51,7 +52,7 @@ test("refuses an unknown candidate without saving anything", async () => {
   const candidates = inMemoryCandidateRepository();
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation("unknown", VOLUME, candidates, donations, clock);
+  const result = await recordDonation("unknown", VOLUME, candidates, donations, clock, uuid);
 
   assert.deepEqual(result, { status: "not-found" });
   assert.equal(await candidates.byId("unknown"), undefined);
@@ -63,7 +64,7 @@ test("refuses an ineligible candidate without saving anything", async () => {
   const candidates = inMemoryCandidateRepository([candidate]);
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation(candidate.id, VOLUME, candidates, donations, clock);
+  const result = await recordDonation(candidate.id, VOLUME, candidates, donations, clock, uuid);
 
   assert.deepEqual(result, { status: "ineligible" });
   assert.deepEqual(await candidates.byId(candidate.id), candidate);
