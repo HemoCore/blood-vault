@@ -1,40 +1,91 @@
 // src/infrastructure/persistence/sql/sqlCollectionRepository.ts
+
+import type { Collection } from "../../../domain/collect.ts";
+import type { CollectionRepository } from "../../../domain/port/collectionRepository.ts";
+
 import { sql } from "./database.ts";
-import { CollectionRepository, CollectionWithAppointments } from "../../../domain/port/collectionRepository.ts";
-import {Collection} from "../../../domain/collect.ts";
-import { Appointment } from "../../../domain/appointment.ts";
+import {
+    toCollection,
+    toCollectionRow,
+    toAppointmentRow,
+    type CollectionRow,
+    type AppointmentRow,
+} from "./collectionMapper.ts";
 
 export class SqlCollectionRepository implements CollectionRepository {
 
-    async save(collection: Collection): Promise<void> {
-        await sql`
-      INSERT INTO collections (id, name, location, max_slots)
-      VALUES (${collection.id}, ${collection.name}, ${collection.location}, ${collection.maxSlots})
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        location = EXCLUDED.location,
-        max_slots = EXCLUDED.max_slots
-    `;
+    async byId(id: string): Promise<Collection | undefined> {
+        const collectionRows = await sql<CollectionRow[]>`
+            SELECT id, name, location, max_slots, created_at
+            FROM collections
+            WHERE id = ${id}
+        `;
+
+        if (collectionRows.length === 0) {
+            return undefined;
+        }
+
+        const appointmentRows = await sql<AppointmentRow[]>`
+            SELECT id, collection_id, candidate_id, booked_at
+            FROM appointments
+            WHERE collection_id = ${id}
+        `;
+
+        return toCollection(
+            collectionRows[0],
+            appointmentRows,
+        );
     }
 
-    async findByIdWithAppointments(id: string): Promise<CollectionWithAppointments | undefined> {
-        // 1. Récupérer la collecte
-        const collections = await sql<Collection[]>`SELECT * FROM collections WHERE id = ${id}`;
-        if (collections.length === 0) return undefined;
+    async save(collection: Collection): Promise<void> {
+        const collectionRow = toCollectionRow(collection);
 
-        // 2. Récupérer ses rendez-vous
-        const rows = await sql`SELECT * FROM appointments WHERE collection_id = ${id}`;
-        const appointments: Appointment[] = rows.map(row => ({
-            id: row.id,
-            collectionId: row.collection_id,
-            candidateId: row.candidate_id,
-            bookedAt: new Date(row.booked_at)
-        }));
+        await sql.begin(async (transaction) => {
+            await transaction`
+                INSERT INTO collections (
+                    id,
+                    name,
+                    location,
+                    max_slots,
+                    created_at
+                )
+                VALUES (
+                    ${collectionRow.id},
+                    ${collectionRow.name},
+                    ${collectionRow.location},
+                    ${collectionRow.max_slots},
+                    ${collectionRow.created_at}
+                )
+                ON CONFLICT (id) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    location = EXCLUDED.location,
+                    max_slots = EXCLUDED.max_slots,
+                    created_at = EXCLUDED.created_at
+            `;
 
-        // 3. Retourner le tout assemblé (US 10)
-        return {
-            ...collections[0],
-            appointments
-        };
+            await transaction`
+                DELETE FROM appointments
+                WHERE collection_id = ${collection.id}
+            `;
+
+            for (const appointment of collection.appointments) {
+                const appointmentRow = toAppointmentRow(appointment);
+
+                await transaction`
+                    INSERT INTO appointments (
+                        id,
+                        collection_id,
+                        candidate_id,
+                        booked_at
+                    )
+                    VALUES (
+                        ${appointmentRow.id},
+                        ${appointmentRow.collection_id},
+                        ${appointmentRow.candidate_id},
+                        ${appointmentRow.booked_at}
+                    )
+                `;
+            }
+        });
     }
 }

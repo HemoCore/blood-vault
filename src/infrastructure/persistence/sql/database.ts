@@ -27,7 +27,8 @@ export async function initializeDatabase(): Promise<void> {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       location TEXT NOT NULL,
-      max_slots INTEGER NOT NULL
+      max_slots INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL
     )
   `;
 
@@ -35,7 +36,7 @@ export async function initializeDatabase(): Promise<void> {
     await sql`
     CREATE TABLE IF NOT EXISTS appointments (
       id TEXT PRIMARY KEY,
-      collection_id TEXT REFERENCES collections(id),
+      collection_id TEXT NOT NULL REFERENCES collections(id),
       candidate_id TEXT NOT NULL,
       booked_at TIMESTAMPTZ NOT NULL
     )
