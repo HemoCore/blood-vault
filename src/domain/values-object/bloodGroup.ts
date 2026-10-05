@@ -9,7 +9,7 @@ export const BLOOD_GROUPS = [
     "O-",
 ] as const;
 
-type BloodGroupValue = (typeof VALID_BLOOD_GROUPS)[number];
+type BloodGroupValue = (typeof BLOOD_GROUPS)[number];
 
 export class BloodGroup {
     private constructor(private readonly value: BloodGroupValue) {}
