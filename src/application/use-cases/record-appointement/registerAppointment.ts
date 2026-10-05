@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { CandidateRepository } from "../../../domain/ports/candidateRepository.ts";
 import type { CollectionRepository } from "../../../domain/ports/collectionRepository.ts";
 import type { Clock } from "../../../domain/ports/clock.ts";
+import { IdGenerator } from "../../../domain/ports/idGenerator.ts";
 
 export interface BookAppointmentCommand {
     collectionId: string;
@@ -19,6 +20,7 @@ export class BookAppointmentHandler {
         private readonly candidates: CandidateRepository,
         private readonly collections: CollectionRepository,
         private readonly clock: Clock,
+        private readonly uuid: IdGenerator,
     ) {}
 
     async handle(
@@ -38,7 +40,7 @@ export class BookAppointmentHandler {
             return { status: "not-found" };
         }
 
-        const appointmentId = randomUUID();
+        const appointmentId = this.uuid.next();
 
         try {
             collection.book({
