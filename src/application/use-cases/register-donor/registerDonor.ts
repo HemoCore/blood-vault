@@ -1,9 +1,9 @@
-import { Candidate } from "../../../domain/candidate";
-import { Email } from "../../../domain/email";
-import { Weight } from "../../../domain/weight";
-import { BloodGroup } from "../../../domain/bloodGroup";
-import { CandidateRepository } from "../../../domain/port/candidateRepository";
-import { Mailer } from "../../../domain/port/mailer";
+import { Candidate } from "../../../domain/models/candidate.ts";
+import { Email } from "../../../domain/values-object/email.ts";
+import { Weight } from "../../../domain/values-object/weight.ts";
+import { BloodGroup } from "../../../domain/values-object/bloodGroup.ts";
+import { CandidateRepository } from "../../../domain/ports/candidateRepository";
+import { Mailer } from "../../../domain/ports/mailer";
 
 export interface RegisterDonorCommand {
     id: string;

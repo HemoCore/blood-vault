@@ -1,7 +1,7 @@
 // src/infrastructure/persistence/sql/sqlCollectionRepository.ts
 
-import type { Collection } from "../../../domain/collect.ts";
-import type { CollectionRepository } from "../../../domain/port/collectionRepository.ts";
+import type { Collection } from "../../../domain/models/collect.ts";
+import type { CollectionRepository } from "../../../domain/ports/collectionRepository.ts";
 
 import { sql } from "./database.ts";
 import {

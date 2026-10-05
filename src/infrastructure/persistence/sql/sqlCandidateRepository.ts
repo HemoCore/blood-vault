@@ -1,9 +1,9 @@
 import { sql } from './database.ts';
-import { Candidate } from '../../../domain/candidate.ts';
-import { CandidateRepository } from '../../../domain/port/candidateRepository.ts';
-import { BloodGroup } from '../../../domain/bloodGroup.ts';
-import { Email } from '../../../domain/email.ts';
-import { Weight } from '../../../domain/weight.ts';
+import { Candidate } from '../../../domain/models/candidate.ts';
+import { CandidateRepository } from '../../../domain/ports/candidateRepository.ts';
+import { BloodGroup } from '../../../domain/values-object/bloodGroup.ts';
+import { Email } from '../../../domain/values-object/email.ts';
+import { Weight } from '../../../domain/values-object/weight.ts';
 
 export class SqlCandidateRepository implements CandidateRepository {
 

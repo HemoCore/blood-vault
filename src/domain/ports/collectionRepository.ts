@@ -1,4 +1,4 @@
-import { Collection } from "../collect.ts";
+import { Collection } from "../models/collect.ts";
 
 export interface CollectionRepository {
     byId(id: string): Promise<Collection | undefined>;

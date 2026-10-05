@@ -1,6 +1,6 @@
-import { BloodGroup } from "./bloodGroup";
-import {Weight} from "./weight.ts";
-import {Email} from "./email.ts";
+import { BloodGroup } from "../values-object/bloodGroup.ts";
+import {Weight} from "../values-object/weight.ts";
+import {Email} from "../values-object/email.ts";
 
 export interface Candidate {
     id: string;

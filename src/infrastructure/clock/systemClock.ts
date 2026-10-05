@@ -1,4 +1,4 @@
-import {Clock} from "../../domain/port/clock";
+import {Clock} from "../../domain/ports/clock";
 
 
 /** La vraie horloge. Le seul endroit du projet qui appelle `new Date()`. */

@@ -1,5 +1,5 @@
-import { Collection } from "../../../domain/collect.ts";
-import type { Appointment } from "../../../domain/appointment.ts";
+import { Collection } from "../../../domain/models/collect.ts";
+import type { Appointment } from "../../../domain/models/appointment.ts";
 
 export interface CollectionRow {
     id: string;

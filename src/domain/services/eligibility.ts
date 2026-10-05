@@ -1,4 +1,4 @@
-import {Candidate} from "./candidate";
+import {Candidate} from "../models/candidate.ts";
 const MIN_AGE = 18;
 const MAX_AGE = 70;
 const MIN_WEIGHT_KG = 50;

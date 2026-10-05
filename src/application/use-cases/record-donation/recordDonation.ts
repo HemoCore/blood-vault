@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { canDonate } from "../../../domain/eligibility";
-import { CandidateRepository } from "../../../domain/port/candidateRepository";
-import { Clock } from "../../../domain/port/clock";
-import { Donation } from "../../../domain/donation";
-import { DonationVolume } from "../../../domain/donationVolume";
-import { DonationRepository } from "../../../domain/port/DonationRepository";
+import { canDonate } from "../../../domain/services/eligibility.ts";
+import { CandidateRepository } from "../../../domain/ports/candidateRepository";
+import { Clock } from "../../../domain/ports/clock";
+import { Donation } from "../../../domain/models/donation.ts";
+import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
+import { DonationRepository } from "../../../domain/ports/DonationRepository";
 
 export type RecordDonationResult =    
         | { status: "not-found" }

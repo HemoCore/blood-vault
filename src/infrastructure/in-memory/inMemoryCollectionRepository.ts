@@ -1,5 +1,5 @@
-import { Collection } from "../../domain/collect";
-import { CollectionRepository } from "../../domain/port/collectionRepository";
+import { Collection } from "../../domain/models/collect.ts";
+import { CollectionRepository } from "../../domain/ports/collectionRepository";
 
 export function inMemoryCollectionRepository(
     initialCollections: Collection[] = [],

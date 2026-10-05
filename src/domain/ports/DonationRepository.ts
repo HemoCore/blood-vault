@@ -1,4 +1,4 @@
-import { Donation } from "../donation";
+import { Donation } from "../models/donation.ts";
 
 export interface DonationRepository {
     all(): Promise<Donation[]>;

@@ -1,5 +1,5 @@
-import { Email } from "../email";
-import { BloodGroup } from "../bloodGroup";
+import { Email } from "../values-object/email.ts";
+import { BloodGroup } from "../values-object/bloodGroup.ts";
 
 export interface DonorCard {
     donorId: string;

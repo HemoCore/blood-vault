@@ -2,7 +2,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { candidateRepositoryContract } from "../../testing/candidateRepository.contract.ts";
+import { candidateRepositoryContract } from "../../../testing/candidateRepository.contract.ts";
 import { fileCandidateRepository } from "./fileCandidateRepository.ts";
 
 candidateRepositoryContract(

@@ -1,9 +1,9 @@
 import { readFile, writeFile } from "node:fs/promises";
-import { BloodGroup } from "../../domain/bloodGroup.ts";
-import { Candidate } from "../../domain/candidate.ts";
-import { CandidateRepository } from "../../domain/port/candidateRepository.ts";
-import { Weight } from "../../domain/weight.ts";
-import { Email } from "../../domain/email.ts";
+import { BloodGroup } from "../../../domain/values-object/bloodGroup.ts";
+import { Candidate } from "../../../domain/models/candidate.ts";
+import { CandidateRepository } from "../../../domain/ports/candidateRepository.ts";
+import { Weight } from "../../../domain/values-object/weight.ts";
+import { Email } from "../../../domain/values-object/email.ts";
 
 /** Un candidat tel qu'il est écrit dans le fichier JSON : que des valeurs simples. */
 interface CandidateRow {

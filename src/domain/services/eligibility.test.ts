@@ -7,10 +7,10 @@ import {
     isWeightEligible,
     isWithinAnnualDonationLimit,
 } from "./eligibility.ts";
-import { Candidate } from "./candidate.ts";
-import { BloodGroup } from "./bloodGroup.ts";
-import { Email } from "./email.ts";
-import { Weight } from "./weight.ts";
+import { Candidate } from "../models/candidate.ts";
+import { BloodGroup } from "../values-object/bloodGroup.ts";
+import { Email } from "../values-object/email.ts";
+import { Weight } from "../values-object/weight.ts";
 
 const TODAY = new Date("2024-02-26");
 

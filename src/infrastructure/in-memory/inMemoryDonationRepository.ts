@@ -1,5 +1,5 @@
-import { DonationRepository } from "../../domain/port/DonationRepository";
-import { Donation } from "../../domain/donation";
+import { DonationRepository } from "../../domain/ports/DonationRepository";
+import { Donation } from "../../domain/models/donation.ts";
 
 export function inMemoryDonationRepository(): DonationRepository {
     const rows: Donation[] = [];

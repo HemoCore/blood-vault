@@ -1,5 +1,5 @@
-import { BloodGroup } from "./bloodGroup";
-import {DonationVolume} from "./donationVolume.ts";
+import { BloodGroup } from "../values-object/bloodGroup.ts";
+import {DonationVolume} from "../values-object/donationVolume.ts";
 
 export interface Donation {
     id: string;

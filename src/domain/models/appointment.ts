@@ -1,5 +1,3 @@
-
-
 export interface Appointment {
     id: string;
     collectionId: string;

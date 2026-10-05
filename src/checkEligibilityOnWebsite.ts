@@ -1,5 +1,5 @@
-import {Candidate} from "./domain/candidate";
-import {canDonate} from "./domain/eligibility";
+import {Candidate} from "./domain/models/candidate.ts";
+import {canDonate} from "./domain/services/eligibility.ts";
 import { systemClock } from "./infrastructure/clock/systemClock";
 
 const at = systemClock.now()

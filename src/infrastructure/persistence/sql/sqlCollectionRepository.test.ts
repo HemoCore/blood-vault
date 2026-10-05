@@ -9,7 +9,7 @@ import {
     closeDatabase,
 } from "./database.ts";
 
-import { Collection } from "../../../domain/collect.ts";
+import { Collection } from "../../../domain/models/collect.ts";
 
 const collectionRepo = new SqlCollectionRepository();
 

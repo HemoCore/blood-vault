@@ -1,5 +1,5 @@
-import { Mailer, DonorCard } from "../../domain/port/mailer";
-import { Email } from "../../domain/email";
+import { Mailer, DonorCard } from "../../domain/ports/mailer";
+import { Email } from "../../domain/values-object/email.ts";
 
 export function inMemoryMailer() {
     const sent: { to: string; card: DonorCard }[] = [];

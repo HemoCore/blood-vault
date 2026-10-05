@@ -1,4 +1,4 @@
-import type { CollectionRepository } from "../../../domain/port/collectionRepository.ts";
+import type { CollectionRepository } from "../../../domain/ports/collectionRepository.ts";
 
 export interface CancelAppointmentCommand {
     appointmentId: string;

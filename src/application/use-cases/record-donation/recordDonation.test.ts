@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { BloodGroup } from "../../../domain/bloodGroup.ts";
-import type { Candidate } from "../../../domain/candidate.ts";
-import { DonationVolume } from "../../../domain/donationVolume.ts";
-import { Email } from "../../../domain/email.ts";
-import { Weight } from "../../../domain/weight.ts";
+import { BloodGroup } from "../../../domain/values-object/bloodGroup.ts";
+import type { Candidate } from "../../../domain/models/candidate.ts";
+import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
+import { Email } from "../../../domain/values-object/email.ts";
+import { Weight } from "../../../domain/values-object/weight.ts";
 import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
 import { inMemoryDonationRepository } from "../../../infrastructure/in-memory/inMemoryDonationRepository.ts";
 import { recordDonation } from "./recordDonation.ts";

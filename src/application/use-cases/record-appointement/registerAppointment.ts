@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import type { CandidateRepository } from "../../../domain/port/candidateRepository.ts";
-import type { CollectionRepository } from "../../../domain/port/collectionRepository.ts";
-import type { Clock } from "../../../domain/port/clock.ts";
+import type { CandidateRepository } from "../../../domain/ports/candidateRepository.ts";
+import type { CollectionRepository } from "../../../domain/ports/collectionRepository.ts";
+import type { Clock } from "../../../domain/ports/clock.ts";
 
 export interface BookAppointmentCommand {
     collectionId: string;
