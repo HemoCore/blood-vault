@@ -1,5 +1,6 @@
 ﻿import { test, describe } from "node:test";
 import assert from "node:assert/strict";
+
 import {
     canDonate,
     hasEnoughTimeSinceLastDonation,
@@ -7,78 +8,125 @@ import {
     isWeightEligible,
     isWithinAnnualDonationLimit,
 } from "./eligibility.ts";
-import { Candidate } from "../models/candidate.ts";
-import { BloodGroup } from "../values-object/bloodGroup.ts";
-import { Email } from "../values-object/email.ts";
-import { Weight } from "../values-object/weight.ts";
+
 import { DonationType } from "../values-object/donationType.ts";
+import { aCandidate } from "../../testing/builders.ts";
 
 const TODAY = new Date("2024-02-26");
 
-function makeCandidate(): Candidate {
-    return {
-        id: "candidate-1",
-        email: Email.of("donor@example.com"),
-        age: 30,
-        weight: Weight.of(65),
-        sexe: "male",
-        annualDonations: 0,
-        lastDonationAt: null,
-        bloodGroup: BloodGroup.of("O+"),
-    };
-}
-
 test("isAgeEligible accepts the age boundaries", () => {
-    assert.equal(isAgeEligible({ ...makeCandidate(), age: 18 }), true);
-    assert.equal(isAgeEligible({ ...makeCandidate(), age: 70 }), true);
+    assert.equal(
+        isAgeEligible(aCandidate().withAge(18).build()),
+        true,
+    );
+
+    assert.equal(
+        isAgeEligible(aCandidate().withAge(70).build()),
+        true,
+    );
 });
 
 test("isAgeEligible rejects ages outside the boundaries", () => {
-    assert.equal(isAgeEligible({ ...makeCandidate(), age: 17 }), false);
-    assert.equal(isAgeEligible({ ...makeCandidate(), age: 71 }), false);
+    assert.equal(
+        isAgeEligible(aCandidate().withAge(17).build()),
+        false,
+    );
+
+    assert.equal(
+        isAgeEligible(aCandidate().withAge(71).build()),
+        false,
+    );
 });
 
 test("isWeightEligible accepts 50 kg or more", () => {
-    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(50) }), true);
-    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(65) }), true);
+    assert.equal(
+        isWeightEligible(aCandidate().withWeight(50).build()),
+        true,
+    );
+
+    assert.equal(
+        isWeightEligible(aCandidate().withWeight(65).build()),
+        true,
+    );
 });
 
 test("isWeightEligible rejects less than 50 kg", () => {
-    assert.equal(isWeightEligible({ ...makeCandidate(), weight: Weight.of(49) }), false);
+    assert.equal(
+        isWeightEligible(aCandidate().withWeight(49).build()),
+        false,
+    );
 });
 
 test("isWithinAnnualDonationLimit accepts 5 donations for a man", () => {
-    assert.equal(isWithinAnnualDonationLimit({ ...makeCandidate(), annualDonations: 5 }), true);
+    const candidate = aCandidate()
+        .male()
+        .withAnnualDonations(5)
+        .build();
+
+    assert.equal(isWithinAnnualDonationLimit(candidate), true);
 });
 
 test("isWithinAnnualDonationLimit rejects 6 donations for a man", () => {
-    assert.equal(isWithinAnnualDonationLimit({ ...makeCandidate(), annualDonations: 6 }), false);
+    const candidate = aCandidate()
+        .male()
+        .withAnnualDonations(6)
+        .build();
+
+    assert.equal(isWithinAnnualDonationLimit(candidate), false);
 });
 
 test("isWithinAnnualDonationLimit accepts 3 donations for a woman", () => {
-    assert.equal(isWithinAnnualDonationLimit({ ...makeCandidate(), sexe: "female", annualDonations: 3 }), true);
+    const candidate = aCandidate()
+        .female()
+        .withAnnualDonations(3)
+        .build();
+
+    assert.equal(isWithinAnnualDonationLimit(candidate), true);
 });
 
 test("isWithinAnnualDonationLimit rejects 4 donations for a woman", () => {
-    assert.equal(isWithinAnnualDonationLimit({ ...makeCandidate(), sexe: "female", annualDonations: 4 }), false);
+    const candidate = aCandidate()
+        .female()
+        .withAnnualDonations(4)
+        .build();
+
+    assert.equal(isWithinAnnualDonationLimit(candidate), false);
 });
 
 describe("US4: 8 weeks between donations", () => {
     test("no previous donation: can donate", () => {
-        const candidate = makeCandidate();
-        assert.equal(hasEnoughTimeSinceLastDonation(candidate, TODAY), true);
+        const candidate = aCandidate().build();
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(candidate, TODAY),
+            true,
+        );
     });
 
     test("last donation 7 weeks ago: cannot donate", () => {
-        const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-01-01") };
-        const today = new Date("2024-02-19"); // 7 semaines après
-        assert.equal(hasEnoughTimeSinceLastDonation(candidate, today), false);
+        const candidate = aCandidate()
+            .lastDonatedAt(new Date("2024-01-01"))
+            .build();
+
+        const today = new Date("2024-02-19");
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(candidate, today),
+            false,
+        );
     });
 
     test("last donation 8 weeks ago: can donate", () => {
-        const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-01-01") };
-        const today = new Date("2024-02-26"); // 8 semaines après
-        assert.equal(hasEnoughTimeSinceLastDonation(candidate, today), true);
+        const candidate = aCandidate()
+            .lastDonatedAt(new Date("2024-01-01"))
+            .build();
+
+        const today = new Date("2024-02-26");
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(candidate, today),
+            true,
+        );
     });
 });
 
@@ -86,37 +134,84 @@ describe("Interval depends on donation type", () => {
     const date = new Date("2024-02-26");
 
     test("plasma is allowed after 2 weeks", () => {
-        const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-02-12") };
-        assert.equal(hasEnoughTimeSinceLastDonation(candidate, date, DonationType.PLASMA), true);
+        const candidate = aCandidate()
+            .lastDonatedAt(new Date("2024-02-12"))
+            .build();
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(
+                candidate,
+                date,
+                DonationType.PLASMA,
+            ),
+            true,
+        );
     });
 
     test("platelets are refused before 4 weeks and allowed at 4 weeks", () => {
-        const threeWeeksAgo = { ...makeCandidate(), lastDonationAt: new Date("2024-02-05") };
-        const fourWeeksAgo = { ...makeCandidate(), lastDonationAt: new Date("2024-01-29") };
+        const threeWeeksAgo = aCandidate()
+            .lastDonatedAt(new Date("2024-02-05"))
+            .build();
 
-        assert.equal(hasEnoughTimeSinceLastDonation(threeWeeksAgo, date, DonationType.PLATELETS), false);
-        assert.equal(hasEnoughTimeSinceLastDonation(fourWeeksAgo, date, DonationType.PLATELETS), true);
+        const fourWeeksAgo = aCandidate()
+            .lastDonatedAt(new Date("2024-01-29"))
+            .build();
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(
+                threeWeeksAgo,
+                date,
+                DonationType.PLATELETS,
+            ),
+            false,
+        );
+
+        assert.equal(
+            hasEnoughTimeSinceLastDonation(
+                fourWeeksAgo,
+                date,
+                DonationType.PLATELETS,
+            ),
+            true,
+        );
     });
 });
 
 describe("canDonate", () => {
     test("accepts a candidate meeting all requirements", () => {
-        const candidate = {
-            ...makeCandidate(),
-            annualDonations: 5,
-            lastDonationAt: new Date("2024-01-01"),
-        };
+        const candidate = aCandidate()
+            .male()
+            .withAnnualDonations(5)
+            .lastDonatedAt(new Date("2024-01-01"))
+            .build();
+
         assert.equal(canDonate(candidate, TODAY), true);
     });
 
     test("rejects a candidate failing any requirement", () => {
-        assert.equal(canDonate({ ...makeCandidate(), age: 17 }, TODAY), false);
-        assert.equal(canDonate({ ...makeCandidate(), weight: Weight.of(49) }, TODAY), false);
-        assert.equal(canDonate({ ...makeCandidate(), sexe: "female", annualDonations: 4 }, TODAY), false);
+        const tooYoung = aCandidate()
+            .withAge(17)
+            .build();
+
+        const tooLight = aCandidate()
+            .withWeight(49)
+            .build();
+
+        const tooManyDonations = aCandidate()
+            .female()
+            .withAnnualDonations(4)
+            .build();
+
+        assert.equal(canDonate(tooYoung, TODAY), false);
+        assert.equal(canDonate(tooLight, TODAY), false);
+        assert.equal(canDonate(tooManyDonations, TODAY), false);
     });
 
     test("rejects a candidate who donated less than 8 weeks ago", () => {
-        const candidate = { ...makeCandidate(), lastDonationAt: new Date("2024-02-19") };
+        const candidate = aCandidate()
+            .lastDonatedAt(new Date("2024-02-19"))
+            .build();
+
         assert.equal(canDonate(candidate, TODAY), false);
     });
 });
