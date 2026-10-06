@@ -21,7 +21,7 @@ export async function recordDonation(
     donations: DonationRepository,
     clock: Clock,
     uuid: IdGenerator,
-    donationTypeName = "WHOLE_BLOOD"
+    donationTypeName = "whole-blood"
 ): Promise<RecordDonationResult> {
     let donationType: DonationType;
     try {
