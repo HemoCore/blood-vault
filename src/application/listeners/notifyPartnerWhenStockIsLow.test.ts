@@ -6,11 +6,11 @@ import { Email } from "../../domain/values-object/email.ts";
 
 import { inMemoryMailer } from "../../infrastructure/in-memory/inMemoryMailer.ts";
 import { inMemoryEventBus } from "../../infrastructure/in-memory/inMemoryEventBus.ts";
+import { inMemoryCandidateRepository } from "../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
 
 import { onBloodStockBecameLowNotifyPartner } from "./notifyPartnerWhenStockIsLow.ts";
 import { onBloodStockBecameLow } from "./notifyDonorsWhenStockIsLow.ts";
-import { inMemoryCandidateRepository } from "../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
-import { Weight } from "../../domain/values-object/weight.ts";
+import { aCandidate } from "../../testing/builders.ts";
 
 test("notifies the partner when blood stock becomes low", async () => {
     const bus = inMemoryEventBus();
@@ -39,25 +39,17 @@ test("notifies both donors and partner when blood stock becomes low", async () =
     const { mailer, sent } = inMemoryMailer();
 
     const candidates = inMemoryCandidateRepository([
-        {
-            id: "donor-1",
-            age: 30,
-            weight: Weight.of(65),
-            sexe: "female",
-            annualDonations: 0,
-            lastDonationAt: null,
-            bloodGroup: BloodGroup.of("O-"),
-            email: Email.of("donor@example.com"),
-        },
+        aCandidate()
+            .withBloodGroup("O-")
+            .withEmail("donor@example.com")
+            .build(),
     ]);
 
-    // Listener déjà présent depuis l'US14
     onBloodStockBecameLow(bus, {
         candidates,
         mailer,
     });
 
-    // Nouveau listener de l'US15
     onBloodStockBecameLowNotifyPartner(bus, {
         mailer,
         partnerEmail: Email.of("partner@example.com"),
