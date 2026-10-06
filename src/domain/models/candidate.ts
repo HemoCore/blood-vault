@@ -11,4 +11,5 @@ export interface Candidate {
     lastDonationAt: Date|null;
     bloodGroup: BloodGroup;
     email: Email;
+    phone?: string;
 }
