@@ -1,7 +1,8 @@
 import postgres from 'postgres';
 
 // URL de connexion vers ton conteneur Docker
-const DATABASE_URL = 'postgres://blood_user:blood_password@localhost:5432/blood_vault';
+const DATABASE_URL =
+    "postgres://blood_user:blood_password@db:5432/blood_vault";
 
 // Initialisation du client PostgreSQL
 export const sql = postgres(DATABASE_URL);

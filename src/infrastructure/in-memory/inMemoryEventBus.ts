@@ -1,4 +1,4 @@
-import type { DomainEvent } from "../../domain/models/events.ts";
+import type { DomainEvent } from "../../domain/events.ts";
 import type {
     EventBus,
     Listener,
