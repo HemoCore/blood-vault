@@ -1,9 +1,10 @@
-import {Candidate} from "./domain/models/candidate.ts";
-import {canDonate} from "./domain/services/eligibility.ts";
-import { systemClock } from "./infrastructure/clock/systemClock";
+import type { Candidate } from "./domain/models/candidate.ts";
+import type { Clock } from "./domain/ports/clock.ts";
+import { canDonate } from "./domain/services/eligibility.ts";
 
-const at = systemClock.now()
-
-export function checkEligibilityAtDesk(candidate: Candidate): boolean {
-    return canDonate(candidate, at);
+export function checkEligibilityAtDesk(
+    candidate: Candidate,
+    clock: Clock,
+): boolean {
+    return canDonate(candidate, clock.now());
 }
