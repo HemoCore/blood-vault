@@ -1,4 +1,4 @@
-import type { DomainEvent } from "../models/events";
+import type { DomainEvent } from "../events.ts";
 
 export type Listener<E extends DomainEvent = DomainEvent> =
     (event: E) => Promise<void>;

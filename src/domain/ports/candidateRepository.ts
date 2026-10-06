@@ -5,4 +5,5 @@ export interface CandidateRepository {
   byId(id: string): Promise<Candidate | undefined>;
   save(candidate: Candidate): Promise<void>;
   byBloodGroup(bloodGroup: BloodGroup): Promise<Candidate[]>;
+  all(): Promise<Candidate[]>;
 }

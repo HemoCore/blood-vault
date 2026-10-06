@@ -4,11 +4,10 @@ import type { BloodGroup } from "../../domain/values-object/bloodGroup.ts";
 
 /** Les candidats pour les tests : rapides, jetables, sans fichier. */
 export function inMemoryCandidateRepository(
-    seed: Candidate[] = []
+    seed: Candidate[] = [],
 ): CandidateRepository {
-
   const rows = new Map(
-      seed.map((candidate) => [candidate.id, candidate])
+      seed.map((candidate) => [candidate.id, candidate]),
   );
 
   return {
@@ -23,8 +22,13 @@ export function inMemoryCandidateRepository(
     async byBloodGroup(bloodGroup: BloodGroup) {
       return [...rows.values()].filter(
           (candidate) =>
-              candidate.bloodGroup.toString() === bloodGroup.toString()
+              candidate.bloodGroup.toString() ===
+              bloodGroup.toString(),
       );
+    },
+
+    async all() {
+      return [...rows.values()];
     },
   };
 }

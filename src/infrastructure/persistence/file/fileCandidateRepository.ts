@@ -1,11 +1,15 @@
 import { readFile, writeFile } from "node:fs/promises";
+
 import { BloodGroup } from "../../../domain/values-object/bloodGroup.ts";
 import { Candidate } from "../../../domain/models/candidate.ts";
 import { CandidateRepository } from "../../../domain/ports/candidateRepository.ts";
 import { Weight } from "../../../domain/values-object/weight.ts";
 import { Email } from "../../../domain/values-object/email.ts";
 
-/** Un candidat tel qu'il est écrit dans le fichier JSON : que des valeurs simples. */
+/**
+ * Un candidat tel qu'il est écrit dans le fichier JSON :
+ * que des valeurs simples.
+ */
 interface CandidateRow {
   id: string;
   age: number;
@@ -14,7 +18,7 @@ interface CandidateRow {
   annualDonations: number;
   lastDonationAt: string | null;
   bloodGroup: string;
-  email: string
+  email: string;
 }
 
 function toRow(candidate: Candidate): CandidateRow {
@@ -24,7 +28,8 @@ function toRow(candidate: Candidate): CandidateRow {
     weightKg: candidate.weight.toKg(),
     sexe: candidate.sexe,
     annualDonations: candidate.annualDonations,
-    lastDonationAt: candidate.lastDonationAt?.toISOString() ?? null,
+    lastDonationAt:
+        candidate.lastDonationAt?.toISOString() ?? null,
     bloodGroup: candidate.bloodGroup.toString(),
     email: candidate.email.toString(),
   };
@@ -37,25 +42,32 @@ function toCandidate(row: CandidateRow): Candidate {
     weight: Weight.of(row.weightKg),
     sexe: row.sexe,
     annualDonations: row.annualDonations,
-    lastDonationAt: row.lastDonationAt ? new Date(row.lastDonationAt) : null,
+    lastDonationAt: row.lastDonationAt
+        ? new Date(row.lastDonationAt)
+        : null,
     bloodGroup: BloodGroup.of(row.bloodGroup),
     email: Email.of(row.email),
   };
 }
 
 export function fileCandidateRepository(
-  filePath: string,
+    filePath: string,
 ): CandidateRepository {
-
   async function readCandidates(): Promise<Candidate[]> {
     let rows: CandidateRow[];
 
     try {
-      const content = await readFile(filePath, "utf-8");
+      const content = await readFile(
+          filePath,
+          "utf-8",
+      );
 
       rows = JSON.parse(content);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      if (
+          (error as NodeJS.ErrnoException).code ===
+          "ENOENT"
+      ) {
         return [];
       }
 
@@ -65,29 +77,60 @@ export function fileCandidateRepository(
     return rows.map(toCandidate);
   }
 
-  async function writeCandidates(candidates: Candidate[]): Promise<void> {
+  async function writeCandidates(
+      candidates: Candidate[],
+  ): Promise<void> {
     await writeFile(
-      filePath,
-      JSON.stringify(candidates.map(toRow), null, 2),
-      "utf-8",
+        filePath,
+        JSON.stringify(
+            candidates.map(toRow),
+            null,
+            2,
+        ),
+        "utf-8",
     );
   }
 
   return {
-    async byId(id: string): Promise<Candidate | undefined> {
+    async byId(
+        id: string,
+    ): Promise<Candidate | undefined> {
       const candidates = await readCandidates();
 
-      return candidates.find((candidate) => candidate.id === id);
+      return candidates.find(
+          (candidate) => candidate.id === id,
+      );
     },
 
-    async save(candidate: Candidate): Promise<void> {
+    async save(
+        candidate: Candidate,
+    ): Promise<void> {
       const candidates = await readCandidates();
 
-        const rows = candidates.filter(
-          (row) => row.id !== candidate.id
-        );
+      const rows = candidates.filter(
+          (row) => row.id !== candidate.id,
+      );
 
-        await writeCandidates([...rows, candidate]);
+      await writeCandidates([
+        ...rows,
+        candidate,
+      ]);
+    },
+
+    async byBloodGroup(
+        bloodGroup: BloodGroup,
+    ): Promise<Candidate[]> {
+      const candidates = await readCandidates();
+
+      return candidates.filter(
+          (candidate) =>
+              candidate.bloodGroup.toString() ===
+              bloodGroup.toString(),
+      );
+    },
+
+    async all(): Promise<Candidate[]> {
+      return readCandidates();
     },
   };
 }

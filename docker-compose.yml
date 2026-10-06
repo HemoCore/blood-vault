@@ -1,4 +1,19 @@
 services:
+  app:
+    image: node:24-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - app-modules:/app/node_modules
+      - app-npm:/root/.npm
+    environment:
+      PORT: "3000"
+      HOST: "0.0.0.0"
+    ports:
+      - "3000:3000"
+    init: true
+    tty: true
+
   db:
     image: postgres:15-alpine
     container_name: blood-vault-db
@@ -13,4 +28,6 @@ services:
       - pgdata:/var/lib/postgresql/data
 
 volumes:
+  app-modules:
+  app-npm:
   pgdata:

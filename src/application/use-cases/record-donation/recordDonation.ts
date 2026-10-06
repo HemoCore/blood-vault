@@ -1,18 +1,17 @@
-import { randomUUID } from "node:crypto";
-import { canDonate } from "../../../domain/services/eligibility.ts";
-import { CandidateRepository } from "../../../domain/ports/candidateRepository";
-import { Clock } from "../../../domain/ports/clock";
-import { Donation } from "../../../domain/models/donation.ts";
+import { checkEligibility } from "../../../domain/services/eligibility.ts";
+import type { CandidateRepository } from "../../../domain/ports/candidateRepository.ts";
+import type { Clock } from "../../../domain/ports/clock.ts";
+import type { Donation } from "../../../domain/models/donation.ts";
 import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
-import { DonationRepository } from "../../../domain/ports/DonationRepository";
-import { IdGenerator } from "../../../domain/ports/idGenerator.ts";
+import type { DonationRepository } from "../../../domain/ports/DonationRepository.ts";
+import type { IdGenerator } from "../../../domain/ports/idGenerator.ts";
 import { DonationType } from "../../../domain/values-object/donationType.ts";
+import { NotFound, Refused } from "../../../domain/errors.ts";
 
-export type RecordDonationResult =    
-        | { status: "not-found" }
-        | { status: "ineligible" }
-        | { status: "invalid-type" }
-        | { status: "recorded"; donation: Donation };
+export type RecordDonationResult = {
+    status: "recorded";
+    donation: Donation;
+};
 
 export async function recordDonation(
     candidateId: string,
@@ -21,23 +20,32 @@ export async function recordDonation(
     donations: DonationRepository,
     clock: Clock,
     uuid: IdGenerator,
-    donationTypeName = "whole-blood"
+    donationTypeName = "whole-blood",
 ): Promise<RecordDonationResult> {
     let donationType: DonationType;
+
     try {
         donationType = DonationType.of(donationTypeName);
     } catch {
-        return { status: "invalid-type" };
+        throw new Refused("invalid donation type");
     }
 
     const candidate = await candidates.byId(candidateId);
 
-    if(!candidate) return { status: "not-found"};
+    if (!candidate) {
+        throw new NotFound("unknown donor");
+    }
 
     const donatedAt = clock.now();
 
-    if (!canDonate(candidate, donatedAt, donationType)) {
-        return { status: "ineligible" };
+    const eligibility = checkEligibility(
+        candidate,
+        donatedAt,
+        donationType,
+    );
+
+    if (!eligibility.eligible) {
+        throw new Refused(eligibility.reason);
     }
 
     const donationId = uuid.next();
@@ -60,5 +68,8 @@ export async function recordDonation(
 
     await donations.add(donation);
 
-    return {status: "recorded", donation};
+    return {
+        status: "recorded",
+        donation,
+    };
 }

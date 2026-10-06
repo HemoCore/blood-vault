@@ -4,14 +4,15 @@ import { test } from "node:test";
 import { BloodGroup } from "../../../domain/values-object/bloodGroup.ts";
 import type { Candidate } from "../../../domain/models/candidate.ts";
 import { DonationVolume } from "../../../domain/values-object/donationVolume.ts";
-import { DonationType } from "../../../domain/values-object/donationType.ts";
 import { Email } from "../../../domain/values-object/email.ts";
 import { Weight } from "../../../domain/values-object/weight.ts";
+import { NotFound, Refused } from "../../../domain/errors.ts";
 import { inMemoryCandidateRepository } from "../../../infrastructure/in-memory/inMemoryCandidateRepository.ts";
 import { inMemoryDonationRepository } from "../../../infrastructure/in-memory/inMemoryDonationRepository.ts";
 import { recordDonation } from "./recordDonation.ts";
 
 const TODAY = new Date("2026-10-03");
+
 const ELIGIBLE_CANDIDATE: Candidate = {
   id: "candidate-1",
   email: Email.of("donor@example.com"),
@@ -22,6 +23,7 @@ const ELIGIBLE_CANDIDATE: Candidate = {
   lastDonationAt: null,
   bloodGroup: BloodGroup.of("O+"),
 };
+
 const clock = { now: () => TODAY };
 const VOLUME = DonationVolume.of(450);
 const uuid = { next: () => "donation-1" };
@@ -30,10 +32,19 @@ test("records an eligible donation and expires its bag after 42 days", async () 
   const candidates = inMemoryCandidateRepository([ELIGIBLE_CANDIDATE]);
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation("candidate-1", VOLUME, candidates, donations, clock, uuid);
+  const result = await recordDonation(
+      "candidate-1",
+      VOLUME,
+      candidates,
+      donations,
+      clock,
+      uuid,
+  );
 
   assert.equal(result.status, "recorded");
+
   const savedDonations = await donations.all();
+
   assert.equal(savedDonations.length, 1);
   assert.equal(savedDonations[0].candidateId, "candidate-1");
   assert.equal(savedDonations[0].donatedAt.getTime(), TODAY.getTime());
@@ -45,75 +56,128 @@ test("records an eligible donation and expires its bag after 42 days", async () 
   );
 
   const updatedCandidate = await candidates.byId("candidate-1");
+
   assert.equal(updatedCandidate?.annualDonations, 1);
-  assert.equal(updatedCandidate?.lastDonationAt?.getTime(), TODAY.getTime());
+  assert.equal(
+      updatedCandidate?.lastDonationAt?.getTime(),
+      TODAY.getTime(),
+  );
 });
 
 test("refuses an unknown candidate without saving anything", async () => {
   const candidates = inMemoryCandidateRepository();
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation("unknown", VOLUME, candidates, donations, clock, uuid);
+  await assert.rejects(
+      () =>
+          recordDonation(
+              "unknown",
+              VOLUME,
+              candidates,
+              donations,
+              clock,
+              uuid,
+          ),
+      NotFound,
+  );
 
-  assert.deepEqual(result, { status: "not-found" });
   assert.equal(await candidates.byId("unknown"), undefined);
   assert.deepEqual(await donations.all(), []);
 });
 
 test("refuses an ineligible candidate without saving anything", async () => {
-  const candidate = { ...ELIGIBLE_CANDIDATE, age: 17 };
+  const candidate = {
+    ...ELIGIBLE_CANDIDATE,
+    age: 17,
+  };
+
   const candidates = inMemoryCandidateRepository([candidate]);
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation(candidate.id, VOLUME, candidates, donations, clock, uuid);
+  await assert.rejects(
+      () =>
+          recordDonation(
+              candidate.id,
+              VOLUME,
+              candidates,
+              donations,
+              clock,
+              uuid,
+          ),
+      Refused,
+  );
 
-  assert.deepEqual(result, { status: "ineligible" });
   assert.deepEqual(await candidates.byId(candidate.id), candidate);
   assert.deepEqual(await donations.all(), []);
 });
 
 test("records each donation type with its own bag expiry", async () => {
   const cases = [
-    { type: "whole-blood", expiresAt: "2026-11-14T00:00:00.000Z" },
-    { type: "plasma", expiresAt: "2027-10-03T00:00:00.000Z" },
-    { type: "platelets", expiresAt: "2026-10-10T00:00:00.000Z" },
+    {
+      type: "whole-blood",
+      expiresAt: "2026-11-14T00:00:00.000Z",
+    },
+    {
+      type: "plasma",
+      expiresAt: "2027-10-03T00:00:00.000Z",
+    },
+    {
+      type: "platelets",
+      expiresAt: "2026-10-10T00:00:00.000Z",
+    },
   ] as const;
 
   for (const [index, scenario] of cases.entries()) {
-    const candidates = inMemoryCandidateRepository([ELIGIBLE_CANDIDATE]);
+    const candidates = inMemoryCandidateRepository([
+      ELIGIBLE_CANDIDATE,
+    ]);
     const donations = inMemoryDonationRepository();
-    const uuid = { next: () => `donation-${index + 1}` };
+
+    const uuid = {
+      next: () => `donation-${index + 1}`,
+    };
 
     const result = await recordDonation(
-      ELIGIBLE_CANDIDATE.id,
-      VOLUME,
-      candidates,
-      donations,
-      clock,
-      uuid,
-      scenario.type,
+        ELIGIBLE_CANDIDATE.id,
+        VOLUME,
+        candidates,
+        donations,
+        clock,
+        uuid,
+        scenario.type,
     );
 
     assert.equal(result.status, "recorded");
-    assert.equal((await donations.all())[0].donationType.toString(), scenario.type);
-    assert.equal((await donations.all())[0].bagExpiresAt.toISOString(), scenario.expiresAt);
+    assert.equal(
+        (await donations.all())[0].donationType.toString(),
+        scenario.type,
+    );
+    assert.equal(
+        (await donations.all())[0].bagExpiresAt.toISOString(),
+        scenario.expiresAt,
+    );
   }
 });
 
 test("refuses an unknown donation type without saving anything", async () => {
-  const candidates = inMemoryCandidateRepository([ELIGIBLE_CANDIDATE]);
+  const candidates = inMemoryCandidateRepository([
+    ELIGIBLE_CANDIDATE,
+  ]);
   const donations = inMemoryDonationRepository();
 
-  const result = await recordDonation(
-    ELIGIBLE_CANDIDATE.id,
-    VOLUME,
-    candidates,
-    donations,
-    clock,
-    uuid,
-    "unknown",
+  await assert.rejects(
+      () =>
+          recordDonation(
+              ELIGIBLE_CANDIDATE.id,
+              VOLUME,
+              candidates,
+              donations,
+              clock,
+              uuid,
+              "unknown",
+          ),
+      Refused,
   );
 
-  assert.deepEqual(result, { status: "invalid-type" });
   assert.deepEqual(await donations.all(), []);
 });
