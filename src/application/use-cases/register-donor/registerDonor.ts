@@ -48,10 +48,11 @@ export class RegisterDonorHandler {
         }
 
         await this.candidateRepository.save(candidate);
-        
-        await this.mailer.sendDonorCard(candidate.email, {
-            donorId: candidate.id,
-            bloodGroup: candidate.bloodGroup,
+
+        await this.mailer.send({
+            to: candidate.email,
+            subject: "Votre carte de donneur",
+            body: `Identifiant : ${candidate.id}, groupe sanguin : ${candidate.bloodGroup.toString()}`,
         });
 
         return { status: "registered", candidate };

@@ -1,12 +1,13 @@
-import { Mailer, DonorCard } from "../../domain/ports/mailer";
-import { Email } from "../../domain/values-object/email.ts";
+import type { Mailer, Letter } from "../../domain/ports/mailer.ts";
 
 export function inMemoryMailer() {
-    const sent: { to: string; card: DonorCard }[] = [];
+    const sent: Letter[] = [];
+
     const mailer: Mailer = {
-        async sendDonorCard(to: Email, card: DonorCard) {
-            sent.push({ to: to.toString(), card });
+        async send(letter: Letter) {
+            sent.push(letter);
         },
     };
+
     return { mailer, sent };
 }

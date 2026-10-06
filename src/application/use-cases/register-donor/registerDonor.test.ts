@@ -33,16 +33,16 @@ test("registers a donor and finds them afterwards", async () => {
     assert.equal(found?.annualDonations, 0);
     assert.equal(found?.lastDonationAt, null);
 });
-
 test("sends the donor card to the donor's address", async () => {
     const { handler, sent } = setup();
 
     await handler.handle(COMMAND);
 
     assert.equal(sent.length, 1);
-    assert.equal(sent[0].to, "donor@example.com");
-    assert.equal(sent[0].card.donorId, "donor-1");
-    assert.equal(sent[0].card.bloodGroup.toString(), "O+");
+    assert.equal(sent[0].to.toString(), "donor@example.com");
+    assert.equal(sent[0].subject, "Votre carte de donneur");
+    assert.match(sent[0].body, /donor-1/);
+    assert.match(sent[0].body, /O\+/);
 });
 
 test("sends the donor card only once if the donor registers twice", async () => {

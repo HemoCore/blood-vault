@@ -1,11 +1,11 @@
 import { Email } from "../values-object/email.ts";
-import { BloodGroup } from "../values-object/bloodGroup.ts";
 
-export interface DonorCard {
-    donorId: string;
-    bloodGroup: BloodGroup;
+export interface Letter {
+    to: Email;
+    subject: string;
+    body: string;
 }
 
 export interface Mailer {
-    sendDonorCard(to: Email, card: DonorCard): Promise<void>;
+    send(letter: Letter): Promise<void>;
 }
